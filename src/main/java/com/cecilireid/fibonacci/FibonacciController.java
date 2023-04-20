@@ -20,8 +20,14 @@ public class FibonacciController {
      * @return the n-th fibonacci number in the sequence
      */
     @GetMapping("findNumber")
-    public ResponseEntity<Integer> findFibonacciNumber(@RequestParam int n) throws FibonacciOutOfRangeException{
-        return ResponseEntity.ok(fibonacci(n));
+    public ResponseEntity<String> findFibonacciNumber(@RequestParam int n){
+        int fib;
+        try{
+            fib = fibonacci(n);
+        } catch (FibonacciOutOfRangeException e ) {
+            return ResponseEntity.status(HTTPStatus.BAD_REQUEST).body(e.getMessage());
+        }
+        return ResponseEntity.ok(String.valueOf(fib));
     }
 
     /**
@@ -31,9 +37,15 @@ public class FibonacciController {
      * @return name of the file created
      */
     @PostMapping("createSequence")
-    public ResponseEntity<String> generateFibonacciSequence(@RequestParam int n) throws IOException {
+    public ResponseEntity<String> generateFibonacciSequence(@RequestParam int n) {
         List<Integer> sequence = getSequence(n);
-        return ResponseEntity.ok(storeSequence(sequence));
+        String fileName;
+        try {
+            fileName = storeSequence(sequence);
+        } catch(IOException e) {
+            return ResponseEntity.status(HTTPStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+        return ResponseEntity.ok(fileNamee);
     }
 
     @GetMapping("getSequence")
@@ -108,7 +120,8 @@ public class FibonacciController {
             return position;
         }
         if (position >= 8) {
-            throw new FibonacciOutOfRangeException(String.format("Requested position %s is too large. Please try again.", position));
+            throw new FibonacciOutOfRangeException(String.format(
+                    "Requested position %s is too large. Please try again.", position));
         }
         return fibonacci(position - 1) + fibonacci(position - 2);
     }
